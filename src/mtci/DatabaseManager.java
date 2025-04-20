@@ -4,6 +4,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
+import mtci.Question;
+import mtci.Question;
 
 public class DatabaseManager {
 
@@ -18,7 +20,7 @@ public class DatabaseManager {
     }
 
     public static void createNewPlayer(String playerName) {
-        try (Connection conn = connectToDatabase("./database/players.db")) {
+        try (Connection conn = connectToDatabase("src/database/players.db")) {
             if (conn != null) {
                 String query = "INSERT INTO players (name, ge01Score, ge02Score, ge03Score, ge04Score, ge05Score, ge06Score, ge07Score, ge08Score, ge09Score, ge10Score, ge11Score) VALUES (?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)";
                 try (PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -33,7 +35,7 @@ public class DatabaseManager {
     }
 
     public static boolean playerExists(String playerName) {
-        try (Connection conn = connectToDatabase("./database/players.db")) {
+        try (Connection conn = connectToDatabase("src/mtci/database/players.db")) {
             if (conn != null) {
                 String query = "SELECT name FROM players WHERE name = ?";
                 try (PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -78,7 +80,7 @@ public class DatabaseManager {
     }
 
     public static void updatePlayerScore(String playerName, String subject, int score) {
-        try (Connection conn = connectToDatabase("./database/players.db")) {
+        try (Connection conn = connectToDatabase("src/mtci/database/players.db")) {
             if (conn != null) {
                 String column = subject + "Score";
                 String query = "UPDATE players SET " + column + " = ? WHERE name = ?";
@@ -96,7 +98,7 @@ public class DatabaseManager {
     public static ArrayList<String> getAllPlayers() {
         ArrayList<String> players = new ArrayList<>();
         String query = "SELECT name FROM players";
-        try (Connection conn = connectToDatabase("./database/players.db"); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = connectToDatabase("src/mtci/database/players.db"); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 players.add(rs.getString("name"));
             }
@@ -118,7 +120,7 @@ public class DatabaseManager {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         String query = "SELECT name, total_score FROM players ORDER BY total_score DESC LIMIT 10";
 
-        try (Connection conn = connectToDatabase("./database/players.db"); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection conn = connectToDatabase("src/mtci/database/players.db"); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String name = rs.getString("name");
                 double score = rs.getDouble("total_score");

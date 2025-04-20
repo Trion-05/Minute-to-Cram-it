@@ -1,5 +1,8 @@
 package mtci;
 
+import mtci.Question;
+import mtci.Question;
+
 public class AnswerRecord {
 
     private final Question question;

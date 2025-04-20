@@ -80,7 +80,7 @@ public class Main {
 
                 //=====MENU BUTTON DESIGN=====
                 RoundedButton playBtn = createMenuButton("Play", new Color(9, 168, 3), new Color(0, 0, 0));
-                RoundedButton leaderboardBtn = createMenuButton("Leader Board", new Color(207, 166, 2), new Color(0, 0, 0));
+                RoundedButton leaderboardBtn = createMenuButton("Leader Board", new Color(255,138,0), new Color(0, 0, 0));
                 RoundedButton aboutUsBtn = createMenuButton("About Us", new Color(13, 55, 209), new Color(0, 0, 0));
                 RoundedButton exitBtn = createMenuButton("Exit", new Color(171, 3, 3), new Color(0, 0, 0));
 
@@ -514,7 +514,7 @@ public class Main {
 // ===GETTER METHOD FOR TYHE SUBEJCTS===
     private Map<String, String> getSubjectsFromDatabase() {
         Map<String, String> subjects = new LinkedHashMap<>();
-        String url = "jdbc:sqlite:./database/questions.db";
+        String url = "jdbc:sqlite:src/mtci/database/questions.db";
 
         try (Connection conn = DriverManager.getConnection(url); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT subjectCode, subjectName FROM questions ORDER BY subjectCode ASC")) {
 
@@ -531,7 +531,7 @@ public class Main {
 
 // ===LOAD THE SELECTED SUBJHECT===
     private void loadSubjectDatabaseAndStart(String playerName, String subjectCode) {
-        String dbPath = "./database/" + subjectCode + ".db";
+        String dbPath = "src/mtci/database/" + subjectCode + ".db";
         File dbFile = new File(dbPath);
         if (!dbFile.exists()) {
             JOptionPane.showMessageDialog(null, "Database for " + subjectCode + " not found!");
@@ -623,8 +623,6 @@ public class Main {
         questionLabel.setFont(new Font("Gameplay", Font.BOLD, 24));
         questionLabel.setForeground(Color.WHITE);
         questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-// Let text wrap by using HTML + max width CSS
         questionLabel.setText("<html><div style='text-align: center; width:700px;'>" + "" + "</div></html>");
 
         questionBox.add(questionLabel);
@@ -764,7 +762,7 @@ public class Main {
         playAgainBtn.setBackground(new Color(9, 168, 3)); // Green
         playAgainBtn.addActionListener(e -> {
             resultFrame.dispose();
-            startGame(playerName, subjectCode, "./database/" + subjectCode + ".db");
+            startGame(playerName, subjectCode, "src/mtci/database/" + subjectCode + ".db");
         });
 
         RoundedButton selectAnotherBtn = new RoundedButton("Select Another Subject");
@@ -793,20 +791,30 @@ public class Main {
     }
 
 //===OKAY NA DITO NA PART===
-    private void reviewAnswersScreen() {
-        JFrame reviewFrame = new JFrame("Answer Review");
-        reviewFrame.setSize(900, 600);
-        reviewFrame.setLocationRelativeTo(null);
-        reviewFrame.getContentPane().setBackground(Color.BLACK);
+    
+private void reviewAnswersScreen() {
+    JFrame reviewFrame = new JFrame("Answer Review");
+    reviewFrame.setSize(900, 600);
+    reviewFrame.setLocationRelativeTo(null);
+    reviewFrame.getContentPane().setBackground(Color.BLACK);
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.BLACK);
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBackground(Color.BLACK);
 
+    if (questions == null || questions.isEmpty()) {
+        JLabel noQuestionsLabel = new JLabel("No questions to review.");
+        noQuestionsLabel.setForeground(Color.WHITE);
+        noQuestionsLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        noQuestionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(Box.createVerticalStrut(50));
+        contentPanel.add(noQuestionsLabel);
+    } else {
         for (int i = 0; i < questions.size(); i++) {
             Question q = questions.get(i);
-            String feedback = answerFeedback.get(i);
+            String feedback = (i < answerFeedback.size()) ? answerFeedback.get(i) : "";
             String selected = extractSelectedAnswer(feedback);
+            String correct = q.getCorrectAnswer();
 
             JPanel questionPanel = new JPanel();
             questionPanel.setLayout(new BoxLayout(questionPanel, BoxLayout.Y_AXIS));
@@ -816,7 +824,7 @@ public class Main {
             ));
             questionPanel.setBackground(new Color(30, 30, 30));
 
-            JLabel questionLabel = new JLabel("<html><b>Q: " + q.getQuestionText() + "</b></html>");
+            JLabel questionLabel = new JLabel("<html><b>Q" + (i + 1) + ": " + q.getQuestionText() + "</b></html>");
             questionLabel.setForeground(Color.WHITE);
             questionPanel.add(questionLabel);
 
@@ -824,12 +832,11 @@ public class Main {
                 JLabel choiceLabel = new JLabel("• " + choice);
                 choiceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 
-                if (choice.equals(q.getCorrectAnswer())) {
-                    choiceLabel.setForeground(Color.GREEN); // Correct answer
-                } else if (choice.equals(selected)) {
-                    choiceLabel.setForeground(Color.RED); // Wrong selection
-                } else {
-                    choiceLabel.setForeground(Color.LIGHT_GRAY); // Neutral
+                if (choice.equals(correct)) {
+                    choiceLabel.setForeground(Color.GREEN); // ✅ Always highlight correct answer
+                } 
+                if (selected != null && choice.equals(selected) && !choice.equals(correct)) {
+                    choiceLabel.setForeground(Color.RED);  
                 }
 
                 questionPanel.add(choiceLabel);
@@ -838,24 +845,26 @@ public class Main {
             contentPanel.add(Box.createVerticalStrut(10));
             contentPanel.add(questionPanel);
         }
-
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(50);
-        reviewFrame.add(scrollPane);
-        reviewFrame.setVisible(true);
     }
+
+    JScrollPane scrollPane = new JScrollPane(contentPanel);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(50);
+    reviewFrame.add(scrollPane);
+    reviewFrame.setVisible(true);
+}
 
 // Helper method to extract the selected answer from answerFeedback entry
-    private String extractSelectedAnswer(String feedback) {
-        int selectedStart = feedback.indexOf("Selected: ");
-        int answerStart = feedback.indexOf(" | Answer:");
+   private String extractSelectedAnswer(String feedback) {
+    int selectedStart = feedback.indexOf("Selected: ");
+    int answerStart = feedback.indexOf(" | Answer:");
 
-        if (selectedStart == -1 || answerStart == -1) {
-            return "";
-        }
-
-        return feedback.substring(selectedStart + 10, answerStart).trim();
+    if (selectedStart == -1 || answerStart == -1) {
+        return "";
     }
+
+    return feedback.substring(selectedStart + 10, answerStart).trim();
+}
+
 
 //==========================================
 //LEADERBBOARD OKAY NATO DITO AS WELL HAHHAA
@@ -913,7 +922,7 @@ public class Main {
                 // leaderboard data
                 try {
                     String sql = "SELECT name, ge01Score, ge02Score, ge03Score, ge04Score, ge05Score, ge06Score, ge07Score, ge08Score, ge09Score, ge10Score, ge11Score, total_score FROM players ORDER BY total_score DESC LIMIT 10";
-                    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:./database/players.db"); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+                    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:src/mtci/database/players.db"); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
                         // Display player names and scores for each subject
                         while (rs.next()) {

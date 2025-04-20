@@ -4,6 +4,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import java.util.List;
+import mtci.DatabaseManager;
+import mtci.DatabaseManager;
+import mtci.Question;
+import mtci.Question;
 
 public class Array {
 
@@ -30,7 +34,7 @@ public class Array {
         String sql = "SELECT questions, choice_a, choice_b, choice_c, choice_d, answer "
                 + "FROM questions WHERE subject = ? ORDER BY RANDOM() LIMIT ?";
 
-        try (Connection conn = DatabaseManager.getConnection("./database/" + subjectCode + ".db"); // Ensure getConnection is defined in DatabaseManager
+        try (Connection conn = DatabaseManager.getConnection("src/mtci/database/" + subjectCode + ".db"); // Ensure getConnection is defined in DatabaseManager
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             // Set parameters for subject and limit (number of questions)
