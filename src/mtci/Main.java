@@ -1,5 +1,9 @@
 package mtci;
 
+import mtci.classes.GameTimer;
+import mtci.classes.RoundedButton;
+import mtci.classes.Question;
+import mtci.classes.DatabaseManager;
 import java.util.List;
 import javax.swing.*;
 import java.awt.*;
@@ -224,7 +228,7 @@ public class Main {
         frame.setVisible(true);
     }
 
-    //=====NEW PALYER===
+    //=====NEW PLAYER===
     private void newPlayerScreen() {
         JFrame frame = new JFrame("New Player");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -642,6 +646,7 @@ public class Main {
             btn.setBackground(new Color(255, 138, 0));
             btn.setOpaque(true);
             btn.setBorderPainted(false);
+            btn.setPreferredSize(new Dimension(100,100));
             choiceButtons.add(btn);
             choicePanel.add(btn);
         }
@@ -867,11 +872,11 @@ private void reviewAnswersScreen() {
 
 
 //==========================================
-//LEADERBBOARD OKAY NATO DITO AS WELL HAHHAA
+//LEADERBBOARD OKAY NATO DITO AS WELL HAHHAA DO NOT EDIT
 //=========================================
     public void showLeaderBoard() {
         JFrame frame = new JFrame("Leaderboard");
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximized, but keeps taskbar visible
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
@@ -1018,68 +1023,201 @@ private void reviewAnswersScreen() {
 //About us, Mission Vision
 //=============================================================
 
-    public void showAboutUs() {
-        JFrame frame = new JFrame("About Us");
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
+public void showAboutUs() {
+    JFrame frame = new JFrame("About Us");
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setLocationRelativeTo(null);
 
-        // Set the background image and layout
-        frame.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                ImageIcon bgIcon = new ImageIcon(getClass().getResource(backgroundImagePath));
-                Image bgImage = bgIcon.getImage();
-                Image scaledBgImage = bgImage.getScaledInstance(frame.getWidth(), frame.getHeight(), Image.SCALE_SMOOTH);
+    frame.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            ImageIcon bgIcon = new ImageIcon(getClass().getResource(backgroundImagePath));
+            Image bgImage = bgIcon.getImage();
+            Image scaledBgImage = bgImage.getScaledInstance(frame.getWidth(), frame.getHeight(), Image.SCALE_SMOOTH);
 
-                JLabel background = new JLabel(new ImageIcon(scaledBgImage)) {
-                    @Override
-                    protected void paintComponent(Graphics g) {
-                        super.paintComponent(g);
-                        g.drawImage(scaledBgImage, 0, 0, getWidth(), getHeight(), this);
-                    }
-                };
-                background.setLayout(new GridBagLayout());
+            JLabel background = new JLabel(new ImageIcon(scaledBgImage));
+            background.setLayout(new BorderLayout());
 
-                // Game title for About Us
-                JLabel title = new JLabel("About Us", SwingConstants.CENTER);
-                title.setFont(new Font("Gameplay", Font.BOLD, 30));
-                title.setForeground(Color.WHITE); // Set title color to white
-                title.setAlignmentX(Component.CENTER_ALIGNMENT);
+            // Title
+            JLabel title = new JLabel("About Us", SwingConstants.CENTER);
+            title.setFont(new Font("Gameplay", Font.BOLD, 30));
+            title.setForeground(Color.WHITE);
 
-                // About Us content
-                JLabel aboutUsContent = new JLabel("Wala pa natapos LOL haha");
-                aboutUsContent.setFont(new Font("Arial", Font.PLAIN, 18));
-                aboutUsContent.setForeground(Color.WHITE);
+            JPanel titlePanel = new JPanel();
+            titlePanel.setOpaque(false);
+            titlePanel.setLayout(new BorderLayout());
+            titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+            titlePanel.add(title, BorderLayout.CENTER);
+            background.add(titlePanel, BorderLayout.NORTH);
 
-                // Back Button
-                RoundedButton backBtn = new RoundedButton("Back");
-                backBtn.setFont(new Font("Gameplay", Font.PLAIN, 18));
-                backBtn.setBackground(new Color(171, 3, 3));
-                backBtn.setForeground(Color.WHITE);
-                backBtn.addActionListener(e1 -> {
-                    frame.dispose();
-                    showMenu();
-                });
+            // Main Content
+            JPanel mainContentWrapper = new JPanel(new BorderLayout());
+            mainContentWrapper.setOpaque(false);
+            mainContentWrapper.setBorder(BorderFactory.createEmptyBorder(0, 100, 0, 100));
 
-                // Panel for About Us and buttons
-                JPanel contentPanel = new JPanel();
-                contentPanel.setOpaque(false);
-                contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-                contentPanel.add(title);
-                contentPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Space before About Us content
-                contentPanel.add(aboutUsContent);
-                contentPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Space before the back button
-                contentPanel.add(backBtn);
+            JPanel mainContentPanel = new JPanel(new GridBagLayout());
+            mainContentPanel.setOpaque(false);
 
-                background.add(contentPanel);
-                frame.setContentPane(background);
-                frame.setVisible(true);
-            }
-        });
+            JScrollPane scrollPane = new JScrollPane(mainContentPanel);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBorder(null);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        // Show the frame
-        frame.setVisible(true);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.weightx = 0.5;
+
+            // MISSION
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.gridwidth = 1;
+            gbc.weighty = 0.1;
+            mainContentPanel.add(createSubBox("Mission", "To provide an engaging and educational experience."), gbc);
+
+            // VISION
+            gbc.gridx = 1;
+            mainContentPanel.add(createSubBox("Vision", "To be the leading platform for gamified learning."), gbc);
+
+            // DEVELOPER
+            gbc.gridy++;
+            gbc.gridx = 0;
+            gbc.gridwidth = 2;
+            gbc.weighty = 0.5;
+            JPanel developersPanel = createDevelopersPanel();
+            mainContentPanel.add(createSubBox("Developer", "", developersPanel), gbc);
+
+            // Back Button
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setOpaque(false);
+
+            RoundedButton backBtn = new RoundedButton("Back");
+            backBtn.setFont(new Font("Gameplay", Font.PLAIN, 18));
+            backBtn.setBackground(new Color(171, 3, 3));
+            backBtn.setForeground(Color.WHITE);
+            backBtn.addActionListener(e1 -> {
+                frame.dispose();
+                showMenu();
+            });
+
+            bottomPanel.add(backBtn);
+            background.add(bottomPanel, BorderLayout.SOUTH);
+
+            mainContentWrapper.add(scrollPane, BorderLayout.CENTER);
+            background.add(mainContentWrapper, BorderLayout.CENTER);
+
+            frame.setContentPane(background);
+            frame.revalidate();
+            frame.repaint();
+            frame.setVisible(true);
+        }
+    });
+
+    frame.setVisible(true);
+}
+
+private JPanel createSubBox(String title, String content, JPanel extraContent) {
+    JPanel panel = new JPanel();
+    panel.setBackground(new Color(0, 0, 0, 180));
+    panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setPreferredSize(new Dimension(400, 150));
+
+    JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(titleLabel);
+    panel.add(Box.createVerticalStrut(10));
+
+    if (!content.isEmpty()) {
+        JLabel contentLabel = new JLabel("<html><div style='text-align: center;'>" + content + "</div></html>", SwingConstants.CENTER);
+        contentLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        contentLabel.setForeground(Color.WHITE);
+        contentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(contentLabel);
     }
+
+    if (extraContent != null) {
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(extraContent);
+    }
+
+    panel.add(Box.createVerticalGlue());
+    return panel;
+}
+
+private JPanel createSubBox(String title, String content) {
+    return createSubBox(title, content, null);
+}
+
+private JPanel createDevelopersPanel() {
+    JPanel developersPanel = new JPanel(new GridLayout(1, 2, 40, 0)); // 1 row, 2 columns, 40px gap
+    developersPanel.setOpaque(false);
+
+    // Developer 1 panel
+    JPanel dev1Panel = new JPanel();
+    dev1Panel.setOpaque(false);
+    dev1Panel.setLayout(new BoxLayout(dev1Panel, BoxLayout.Y_AXIS));
+    dev1Panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    JLabel dev1Photo = createImageLabel("mtci/eugz.png");  // Load normally
+    JLabel dev1Info = new JLabel("<html><div style='text-align: center;'>Eugene B. Bene<br>Project Programmer & Gui Designer</div></html>");
+    dev1Info.setFont(new Font("Arial", Font.PLAIN, 18));
+    dev1Info.setForeground(Color.WHITE);
+    dev1Info.setHorizontalAlignment(SwingConstants.CENTER);
+    dev1Info.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    dev1Panel.add(dev1Photo);
+    dev1Panel.add(Box.createVerticalStrut(15));
+    dev1Panel.add(dev1Info);
+
+    // Developer 2 panel
+    JPanel dev2Panel = new JPanel();
+    dev2Panel.setOpaque(false);
+    dev2Panel.setLayout(new BoxLayout(dev2Panel, BoxLayout.Y_AXIS));
+    dev2Panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    JLabel dev2Photo = createImageLabel("mtci/chrysthyll.jpg");  // Load normally
+    JLabel dev2Info = new JLabel("<html><div style='text-align: center;'>Chrysthyll Meanne Balbueno<br>Project Programmer & Database Manager</div></html>");
+    dev2Info.setFont(new Font("Arial", Font.PLAIN, 18));
+    dev2Info.setForeground(Color.WHITE);
+    dev2Info.setHorizontalAlignment(SwingConstants.CENTER);
+    dev2Info.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    dev2Panel.add(dev2Photo);
+    dev2Panel.add(Box.createVerticalStrut(15));
+    dev2Panel.add(dev2Info);
+
+    developersPanel.add(dev1Panel);
+    developersPanel.add(dev2Panel);
+
+    return developersPanel;
+}
+
+private JLabel createImageLabel(String imagePath) {
+    try {
+        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource(imagePath));
+        Image img = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+
+        JLabel label = new JLabel(new ImageIcon(img));
+        label.setPreferredSize(new Dimension(150, 150));
+        label.setMaximumSize(new Dimension(150, 150));
+        label.setMinimumSize(new Dimension(150, 150));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+
+        return label;
+    } catch (Exception e) {
+        System.err.println("Image loading failed: " + e.getMessage());
+        return new JLabel("Image not found");
+    }
+}
+
 
 }
